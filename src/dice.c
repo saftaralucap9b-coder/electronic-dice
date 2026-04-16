@@ -7,8 +7,7 @@
 
 #include <stdlib.h>
 
-void Dice_Init(void) {
-}
-
-void Dice_Update(void) {
-}
+typedef struct {
+    gpio_port_t port;
+    uint8_t pin;
+} dice_pin_t;
