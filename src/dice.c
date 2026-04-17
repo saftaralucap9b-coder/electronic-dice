@@ -18,3 +18,12 @@ typedef enum {
     DICE_STATE_SHOW_RESULT
 } dice_state_t;
 static const dice_pin_t led_pins[6] = {{ D2 },{ D3 },{ D4 },{ D5 },{ D6 },{ D7 }};
+static dice_state_t dice_state = DICE_STATE_IDLE;
+
+static uint8_t dice_value = 0;
+static uint8_t beep_index = 0;
+static gpio_state_t last_button_state = GPIO_HIGH;
+
+static uint32_t state_timestamp = 0;
+static uint32_t last_button_event = 0;
+static uint32_t entropy_counter = 0;
