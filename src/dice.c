@@ -84,3 +84,18 @@ state_timestamp = now;
   state_timestamp = now;
 dice_state = DICE_STATE_BEEP_OFF;}
 break;
+        case DICE_STATE_BEEP_OFF:
+  // 100 ms pauză, astfel totalul devine ~300 ms per sunet
+ if ((now - state_timestamp) >= 100) {
+   beep_index++;
+
+if (beep_index < dice_value) {
+ uint16_t next_note = NOTE_C4 + (beep_index * 50);
+Dice_StartBeep(next_note);
+state_timestamp = now;
+ dice_state = DICE_STATE_BEEP_ON;
+ } else {
+ state_timestamp = now;
+ dice_state = DICE_STATE_SHOW_RESULT;
+  }
+ } break;
