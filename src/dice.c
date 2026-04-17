@@ -17,3 +17,4 @@ typedef enum {
     DICE_STATE_BEEP_OFF,
     DICE_STATE_SHOW_RESULT
 } dice_state_t;
+static const dice_pin_t led_pins[6] = {{ D2 },{ D3 },{ D4 },{ D5 },{ D6 },{ D7 }};
