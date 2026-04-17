@@ -99,3 +99,10 @@ state_timestamp = now;
  dice_state = DICE_STATE_SHOW_RESULT;
   }
  } break;
+ case DICE_STATE_SHOW_RESULT:
+ // 500 ms afișare rezultat, apoi stingere LED-uri
+if ((now - state_timestamp) >= 500) {
+ Dice_Clear();
+dice_state = DICE_STATE_IDLE;
+  }
+ break;
