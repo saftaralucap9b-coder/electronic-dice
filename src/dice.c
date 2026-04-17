@@ -77,3 +77,10 @@ state_timestamp = now;
  }
  }
   break;
+    case DICE_STATE_BEEP_ON:
+// 200 ms ON, similar cu tone(..., 200)
+  if ((now - state_timestamp) >= 200) {
+  Dice_StopBeep();
+  state_timestamp = now;
+dice_state = DICE_STATE_BEEP_OFF;}
+break;
