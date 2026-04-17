@@ -11,3 +11,9 @@ typedef struct {
     gpio_port_t port;
     uint8_t pin;
 } dice_pin_t;
+typedef enum {
+    DICE_STATE_IDLE,
+    DICE_STATE_BEEP_ON,
+    DICE_STATE_BEEP_OFF,
+    DICE_STATE_SHOW_RESULT
+} dice_state_t;
