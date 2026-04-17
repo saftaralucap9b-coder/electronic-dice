@@ -57,3 +57,23 @@ void Dice_Init(void) {
     last_button_event = 0;
     entropy_counter = 0;
 }
+void Dice_Update(void) {
+    uint32_t now = Millis();
+    entropy_counter++;
+
+    switch (dice_state) {
+  case DICE_STATE_IDLE:
+if (Dice_IsButtonPressed()) {
+// debounce simplu
+if ((now - last_button_event) >= 200) {
+ last_button_event = now;
+ dice_value = Dice_GenerateRandomValue();
+ Dice_Display(dice_value);
+
+ beep_index = 0;
+Dice_StartBeep(NOTE_C4);
+state_timestamp = now;
+ dice_state = DICE_STATE_BEEP_ON;
+ }
+ }
+  break;
