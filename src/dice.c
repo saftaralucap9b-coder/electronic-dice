@@ -34,3 +34,26 @@ static void Dice_StartBeep(uint16_t frequency);
 static void Dice_StopBeep(void);
 static uint8_t Dice_IsButtonPressed(void);
 static uint8_t Dice_GenerateRandomValue(void);
+void Dice_Init(void) {
+    // Inițializare LED-uri
+    for (uint8_t i = 0; i < 6; i++) {
+        GPIO_Init(led_pins[i].port, led_pins[i].pin, GPIO_OUTPUT);
+        GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
+    }
+
+    // Inițializare buton cu pull-up intern
+    GPIO_Init(D12, GPIO_INPUT);
+    GPIO_Write(D12, GPIO_HIGH);
+// Inițializare buzzer
+    PWM_Init(D11, NOTE_C4);
+    PWM_SetDutyCycle(D11, 0);
+    PWM_Stop(D11);
+
+    dice_state = DICE_STATE_IDLE;
+    dice_value = 0;
+    beep_index = 0;
+    last_button_state = GPIO_HIGH;
+    state_timestamp = 0;
+    last_button_event = 0;
+    entropy_counter = 0;
+}
