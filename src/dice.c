@@ -144,3 +144,8 @@ static uint8_t Dice_IsButtonPressed(void) {
     last_button_state = current_state;
     return pressed;
 }
+static uint8_t Dice_GenerateRandomValue(void) {
+    // Seed bazat pe timpul de reacție al utilizatorului + număr de iterații
+    srand((unsigned int)(Millis() ^ entropy_counter));
+    return (uint8_t)((rand() % 6) + 1);
+}
