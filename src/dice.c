@@ -106,3 +106,8 @@ if ((now - state_timestamp) >= 500) {
 dice_state = DICE_STATE_IDLE;
   }
  break;
+ default:
+            dice_state = DICE_STATE_IDLE;
+            break;
+    }
+}
