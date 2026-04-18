@@ -116,3 +116,12 @@ static void Dice_Clear(void) {
         GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
     }
 }
+static void Dice_Display(uint8_t value) {
+    for (uint8_t i = 0; i < 6; i++) {
+        if (i < value) {
+            GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_HIGH);
+        } else {
+            GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
+        }
+    }
+}
