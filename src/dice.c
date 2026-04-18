@@ -107,7 +107,12 @@ dice_state = DICE_STATE_IDLE;
   }
  break;
  default:
-            dice_state = DICE_STATE_IDLE;
-            break;
+     dice_state = DICE_STATE_IDLE;
+      break;
+    }
+}
+static void Dice_Clear(void) {
+    for (uint8_t i = 0; i < 6; i++) {
+        GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
     }
 }
