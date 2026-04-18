@@ -133,3 +133,14 @@ static void Dice_StopBeep(void) {
     PWM_SetDutyCycle(D11, 0);
     PWM_Stop(D11);
 }
+static uint8_t Dice_IsButtonPressed(void) {
+    gpio_state_t current_state = GPIO_Read(D12);
+    uint8_t pressed = 0;
+
+    if (last_button_state == GPIO_HIGH && current_state == GPIO_LOW) {
+        pressed = 1;
+    }
+
+    last_button_state = current_state;
+    return pressed;
+}
