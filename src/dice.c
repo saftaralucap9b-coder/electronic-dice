@@ -129,3 +129,7 @@ static void Dice_StartBeep(uint16_t frequency) {
     PWM_Init(D11, frequency);
     PWM_SetDutyCycle(D11, 128); // ~50% duty cycle
 }
+static void Dice_StopBeep(void) {
+    PWM_SetDutyCycle(D11, 0);
+    PWM_Stop(D11);
+}
