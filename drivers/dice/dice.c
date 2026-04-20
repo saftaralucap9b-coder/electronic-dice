@@ -5,6 +5,7 @@
 #include "drivers/pwm/pwm.h"
 #include "drivers/timer/timer0.h"
 #include "drivers/dice/dice.h"
+#include "bsp/nano.h"
 
 #include <stdlib.h>
 

@@ -1,5 +1,5 @@
 #include "drivers/timer/timer0.h"
-#include "dice.h"
+#include "drivers/dice/dice.h"
 
 int main(void) {
     Timer0_Init();
