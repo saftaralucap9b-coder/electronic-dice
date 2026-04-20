@@ -1,5 +1,6 @@
 #include "drivers/timer/timer0.h"
 #include "drivers/dice/dice.h"
+#include "bsp/pitches.h"
 
 int main(void) {
     Timer0_Init();
