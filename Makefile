@@ -1,4 +1,4 @@
-Makefile for ATmega328P Project
+#Makefile for ATmega328P Project
 
 # Microcontroller Settings
 MCU = atmega328p
@@ -34,11 +34,12 @@ else
 endif
 
 # Source Files
-SRC = src/main.c src/dice.c \
-      drivers/gpio/gpio.c \
-      drivers/timer/timer0.c \
-      drivers/timer/timer1.c \
-      drivers/timer/timer2.c \
+SRC = src/main.c 
+      drivers/gpio/gpio.c 
+      drivers/timer/timer0.c 
+      drivers/timer/timer1.c 
+      drivers/timer/timer2.c 
+	  drivers/dice/dice.c 
       drivers/pwm/pwm.c
 
 # Object Files
