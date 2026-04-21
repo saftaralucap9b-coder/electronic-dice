@@ -6,7 +6,7 @@ F_CPU = 16000000UL
 
 # Programmer Settings
 PROGRAMMER = arduino
-PORT = COM4
+PORT = COM3
 BAUD = 57600
 # BAUD = 115200
 

@@ -1,6 +1,6 @@
 #include "gpio.h"
 #include "utils/utils.h"
-
+//Configurează
 void GPIO_Init(gpio_port_t port, uint8_t pin, gpio_dir_t dir) {
     switch (port) {
         case GPIO_PORTB:
@@ -28,7 +28,7 @@ void GPIO_Init(gpio_port_t port, uint8_t pin, gpio_dir_t dir) {
             break;
     }
 }
-
+//Scrie pe pin
 void GPIO_Write(gpio_port_t port, uint8_t pin, gpio_state_t state) {
     switch (port) {
         case GPIO_PORTB:
@@ -44,7 +44,7 @@ void GPIO_Write(gpio_port_t port, uint8_t pin, gpio_state_t state) {
             break;
     }
 }
-
+//Citește starea pin
 gpio_state_t GPIO_Read(gpio_port_t port, uint8_t pin) {
     switch (port) {
         case GPIO_PORTB:
@@ -59,7 +59,7 @@ gpio_state_t GPIO_Read(gpio_port_t port, uint8_t pin) {
 
     return GPIO_LOW;
 }
-
+//Inversează starea pinului
 void GPIO_Toggle(gpio_port_t port, uint8_t pin) {
     switch (port) {
         case GPIO_PORTB:

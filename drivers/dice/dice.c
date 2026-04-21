@@ -113,41 +113,40 @@ dice_state = DICE_STATE_IDLE;
       break;
     }
 }
-static void Dice_Clear(void) {
+static void Dice_Clear(void) {//functie sting toate LED -urile
     for (uint8_t i = 0; i < 6; i++) {
-        GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
+        GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);//pentru fiecare LED, pune pe LOW
     }
 }
-static void Dice_Display(uint8_t value) {
+static void Dice_Display(uint8_t value) {//afisez pe led val.zar 
     for (uint8_t i = 0; i < 6; i++) {
         if (i < value) {
             GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_HIGH);
         } else {
             GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
-        }
+        }//aprind led uri in functie de valoare,restul le las stinse
     }
 }
-static void Dice_StartBeep(uint16_t frequency) {
+static void Dice_StartBeep(uint16_t frequency) {//funcția care pornește buzzerul
     PWM_Init(D11, frequency);
-    PWM_SetDutyCycle(D11, 128); // ~50% duty cycle
+    PWM_SetDutyCycle(D11, 128); // 50% duty cycle,practic pornesc semnalul jumatate de timp si jumatate nu ca sa se auda mai clar
 }
 static void Dice_StopBeep(void) {
     PWM_SetDutyCycle(D11, 0);
-    PWM_Stop(D11);
+    PWM_Stop(D11);//sa fiu sigura ca buzzerul chiar se opreste
 }
 static uint8_t Dice_IsButtonPressed(void) {
-    gpio_state_t current_state = GPIO_Read(D12);
+    gpio_state_t current_state = GPIO_Read(D12);//starea curentă a butonului de pe pinul D12
     uint8_t pressed = 0;
 
     if (last_button_state == GPIO_HIGH && current_state == GPIO_LOW) {
         pressed = 1;
     }
 
-    last_button_state = current_state;
+    last_button_state = current_state;//starea anterioasa este stare curenta
     return pressed;
 }
 static uint8_t Dice_GenerateRandomValue(void) {
-    // Seed bazat pe timpul de reacție al utilizatorului + număr de iterații
     srand((unsigned int)(Millis() ^ entropy_counter));
-    return (uint8_t)((rand() % 6) + 1);
+    return (uint8_t)((rand() % 6) + 1); //setez seed-ul cu o valoare bazată pe timpul curent (Millis()) și un contor intern (entropy_counter) pentru a obține rezultate diferite la fiecare execuție
 }
