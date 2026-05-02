@@ -19,6 +19,45 @@ typedef enum {DICE_STATE_IDLE,
     DICE_STATE_SHOW_RESULT
 } dice_state_t;//enumeram starile
 static const dice_pin_t led_pins[6] = {{ D2 },{ D3 },{ D4 },{ D5 },{ D6 },{ D7 }};
+// Structură pentru a gestiona melodiile
+typedef struct {
+    const int* note;
+    const int* durate;
+    uint8_t lungime;
+} melody_t;
+
+// 1: "Aw, snap!" (Efect de eșec, scurt și grav)
+static const int m1_notes[] = { NOTE_G2, NOTE_C2 };
+static const int m1_dur[]   = { 150, 300 };
+
+// 2: "Double Tap" (Stil militar/robot)
+static const int m2_notes[] = { NOTE_E4, NOTE_E4 };
+static const int m2_dur[]   = { 80, 80 };
+
+// 3: "Level Up" (Urcare rapidă, veselă)
+static const int m3_notes[] = { NOTE_C4, NOTE_E4, NOTE_G4, NOTE_C5 };
+static const int m3_dur[]   = { 50, 50, 50, 150 };
+
+// 4: "Retro Slide" (Cădere stil Mario)
+static const int m4_notes[] = { NOTE_C5, NOTE_G4, NOTE_E4, NOTE_C4 };
+static const int m4_dur[]   = { 80, 80, 80, 200 };
+
+// 5: "Magic Spell" (Alternanță rapidă de frecvențe înalte)
+static const int m5_notes[] = { NOTE_C5, NOTE_G5, NOTE_E5, NOTE_G5, NOTE_B5 };
+static const int m5_dur[]   = { 60, 60, 60, 60, 150 };
+
+// 6: "JACKPOT" (Fanfară de victorie)
+static const int m6_notes[] = { NOTE_G4, NOTE_C5, NOTE_G4, NOTE_C5, NOTE_E5, NOTE_G5, NOTE_C6 };
+static const int m6_dur[]   = { 80, 80, 80, 80, 100, 100, 400 };
+
+static const melody_t melodii[6] = {
+    { m1_notes, m1_dur, 2 },
+    { m2_notes, m2_dur, 2 },
+    { m3_notes, m3_dur, 4 },
+    { m4_notes, m4_dur, 4 },
+    { m5_notes, m5_dur, 5 },
+    { m6_notes, m6_dur, 7 }
+};
 
 static dice_state_t dice_state = DICE_STATE_IDLE;//starea curenta -asteptam apasare buton
 
@@ -64,43 +103,45 @@ void Dice_Update(void) {//functie pe care o apelez continuu in main
     entropy_counter++;
 
     switch (dice_state) {
-  case DICE_STATE_IDLE:
-if (Dice_IsButtonPressed()) {
-// debounce simplu
-if ((now - last_button_event) >= 200) {//daca butonul e apasat verific daca au trecut 200ms de la u apasare
- last_button_event = now;//memorez momentul apasarii
- dice_value = Dice_GenerateRandomValue();//generez v zar
- Dice_Display(dice_value);
+ case DICE_STATE_IDLE:
+    if (Dice_IsButtonPressed()) {
+        if ((now - last_button_event) >= 200) {
+            last_button_event = now;
+            dice_value = Dice_GenerateRandomValue(); // Valoare între 1 și 6
+            Dice_Display(dice_value);
 
- beep_index = 0;
-Dice_StartBeep(NOTE_C4);//primul beep la frecvența C4
-state_timestamp = now;
- dice_state = DICE_STATE_BEEP_ON;
- }
- }
-  break;
+            beep_index = 0; // Indexul notei curente din melodie
+            // Pornim prima notă a melodiei specifice
+            Dice_StartBeep(melodii[dice_value - 1].note[0]);
+            state_timestamp = now;
+            dice_state = DICE_STATE_BEEP_ON;
+        }
+    }
+    break;
     case DICE_STATE_BEEP_ON:
-    //vreau ca beep-ul să țină 200 ms
-  if ((now - state_timestamp) >= 200) {//daca au trecut
-  Dice_StopBeep();
-  state_timestamp = now;
-dice_state = DICE_STATE_BEEP_OFF;}
-break;
-        case DICE_STATE_BEEP_OFF://pauza aia dintre sunete
-  // 100 ms pauză totalul devine 300 ms per sunet
- if ((now - state_timestamp) >= 100) {
-   beep_index++;
-
-if (beep_index < dice_value) {
- uint16_t next_note = NOTE_C4 + (beep_index * 50);//calculez frecventa urmatorului sunet
-Dice_StartBeep(next_note);
-state_timestamp = now;
- dice_state = DICE_STATE_BEEP_ON;
- } else {
- state_timestamp = now;
- dice_state = DICE_STATE_SHOW_RESULT;
-  }
- } break;
+    // Folosim durata specifică notei curente din melodie
+    if ((now - state_timestamp) >= melodii[dice_value - 1].durate[beep_index]) {
+        Dice_StopBeep();
+        state_timestamp = now;
+        dice_state = DICE_STATE_BEEP_OFF;
+    }
+    break;
+       case DICE_STATE_BEEP_OFF:
+    // O pauză de doar 20-30ms face ca notele să pară legate, dar distincte
+    if ((now - state_timestamp) >= 30) { 
+        beep_index++;
+        if (beep_index < melodii[dice_value - 1].lungime) {
+            Dice_StartBeep(melodii[dice_value - 1].note[beep_index]);
+            state_timestamp = now;
+            dice_state = DICE_STATE_BEEP_ON;
+        } else {
+            // Melodia s-a terminat, oprim PWM-ul de tot acum
+            PWM_Stop(D11);
+            state_timestamp = now;
+            dice_state = DICE_STATE_SHOW_RESULT;
+        }
+    }
+    break;
  case DICE_STATE_SHOW_RESULT:
  // 500 ms afișare rezultat apoi sting LED-uri
 if ((now - state_timestamp) >= 500) {
@@ -127,13 +168,12 @@ static void Dice_Display(uint8_t value) {//afisez pe led val.zar
         }//aprind led uri in functie de valoare,restul le las stinse
     }
 }
-static void Dice_StartBeep(uint16_t frequency) {//funcția care pornește buzzerul
-    PWM_Init(D11, frequency);
-    PWM_SetDutyCycle(D11, 128); // 50% duty cycle,practic pornesc semnalul jumatate de timp si jumatate nu ca sa se auda mai clar
+static void Dice_StartBeep(uint16_t frequency) {
+    PWM_Init(D11, frequency); 
+    PWM_SetDutyCycle(D11, 127); // 50% duty cycle pentru un sunet clar de tip "square wave"
 }
 static void Dice_StopBeep(void) {
     PWM_SetDutyCycle(D11, 0);
-    PWM_Stop(D11);//sa fiu sigura ca buzzerul chiar se opreste
 }
 static uint8_t Dice_IsButtonPressed(void) {
     gpio_state_t current_state = GPIO_Read(D12);//starea curentă a butonului de pe pinul D12
