@@ -5,8 +5,9 @@
 #include "drivers/timer/timer0.h"
 #include "drivers/dice/dice.h"
 #include "bsp/nano.h"
-
 #include <stdlib.h>
+#include <stdio.h>
+#include "drivers/uart/uart.h" 
 
 typedef struct {
     gpio_port_t port;
@@ -50,7 +51,7 @@ static const int m3_d[] = {
     100,100,100,250
 };
 
-// 4-alerta (trill arcade)
+// 4-alerta 
 static const int m4_n[] = {
     NOTE_E4, NOTE_E5, NOTE_E4, NOTE_E5, NOTE_G4
 };
@@ -103,6 +104,7 @@ static uint8_t Dice_IsButtonPressed(void);
 static uint8_t Dice_GenerateRandomValue(void);
 
 void Dice_Init(void) {
+    UART_Init(9600);
     // Inițializare LED-uri
     for (uint8_t i = 0; i < 6; i++) {
         GPIO_Init(led_pins[i].port, led_pins[i].pin, GPIO_OUTPUT);//configuram led ca iesire
@@ -140,6 +142,8 @@ void Dice_Update(void) {//functie pe care o apelez continuu in main
             if ((now - last_button_event) >= 200) {
                 last_button_event = now;//memorez momentul apasarii
                 dice_value = Dice_GenerateRandomValue();//generez v zar
+                UART_SendChar(dice_value + '0'); 
+                UART_SendChar('\n');
                 Dice_Display(dice_value);
 
                 beep_index = 0;
