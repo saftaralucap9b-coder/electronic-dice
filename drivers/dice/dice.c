@@ -18,6 +18,40 @@ typedef enum {DICE_STATE_IDLE,
     DICE_STATE_BEEP_OFF,
     DICE_STATE_SHOW_RESULT
 } dice_state_t;//enumeram starile
+typedef struct {
+    const int* note;
+    const int* durate;
+    uint8_t lungime;
+} melody_t;
+// 1: FAIL (Sunet descendent)
+static const int m1_n[] = { NOTE_C4, NOTE_GS3, NOTE_E3 };
+static const int m1_d[] = { 150, 150, 300 };
+
+// 2: SIMPLE (Două note neutre)
+static const int m2_n[] = { NOTE_E4, NOTE_E4 };
+static const int m2_d[] = { 100, 100 };
+
+// 3: STEP UP (Urcare rapidă)
+static const int m3_n[] = { NOTE_C4, NOTE_E4, NOTE_G4 };
+static const int m3_d[] = { 80, 80, 80 };
+
+// 4: ARCADE (Ritm digital)
+static const int m4_n[] = { NOTE_C5, NOTE_G4, NOTE_C5, NOTE_G4 };
+static const int m4_d[] = { 60, 60, 60, 60 };
+
+// 5: WIN (Mini-fanfară)
+static const int m5_n[] = { NOTE_G4, NOTE_C5, NOTE_E5, NOTE_G5 };
+static const int m5_d[] = { 60, 60, 60, 120 };
+
+// 6: JACKPOT (Fanfară de victorie stil Final Fantasy)
+static const int m6_n[] = { NOTE_C5, NOTE_C5, NOTE_C5, NOTE_C5, NOTE_GS4, NOTE_AS4, NOTE_C5 };
+static const int m6_d[] = { 80, 80, 80, 150, 150, 150, 400 };
+
+// Tabelul care le leagă pe toate de zar (index 0-5 pentru numerele 1-6)
+static const melody_t playlist[6] = {
+    { m1_n, m1_d, 3 }, { m2_n, m2_d, 2 }, { m3_n, m3_d, 3 },
+    { m4_n, m4_d, 4 }, { m5_n, m5_d, 4 }, { m6_n, m6_d, 7 }
+};
 static const dice_pin_t led_pins[6] = {{ D2 },{ D3 },{ D4 },{ D5 },{ D6 },{ D7 }};
 
 static dice_state_t dice_state = DICE_STATE_IDLE;//starea curenta -asteptam apasare buton
@@ -73,34 +107,34 @@ if ((now - last_button_event) >= 200) {//daca butonul e apasat verific daca au t
  Dice_Display(dice_value);
 
  beep_index = 0;
-Dice_StartBeep(NOTE_C4);//primul beep la frecvența C4
+Dice_StartBeep(playlist[dice_value - 1].note[0]);
 state_timestamp = now;
  dice_state = DICE_STATE_BEEP_ON;
  }
  }
   break;
     case DICE_STATE_BEEP_ON:
-    //vreau ca beep-ul să țină 200 ms
-  if ((now - state_timestamp) >= 200) {//daca au trecut
-  Dice_StopBeep();
-  state_timestamp = now;
-dice_state = DICE_STATE_BEEP_OFF;}
-break;
-        case DICE_STATE_BEEP_OFF://pauza aia dintre sunete
-  // 100 ms pauză totalul devine 300 ms per sunet
- if ((now - state_timestamp) >= 100) {
-   beep_index++;
-
-if (beep_index < dice_value) {
- uint16_t next_note = NOTE_C4 + (beep_index * 50);//calculez frecventa urmatorului sunet
-Dice_StartBeep(next_note);
-state_timestamp = now;
- dice_state = DICE_STATE_BEEP_ON;
- } else {
- state_timestamp = now;
- dice_state = DICE_STATE_SHOW_RESULT;
-  }
- } break;
+        // Verificăm dacă a trecut durata notei curente din playlist
+        if ((now - state_timestamp) >= playlist[dice_value - 1].durate[beep_index]) {
+            Dice_StopBeep();
+            state_timestamp = now;
+            dice_state = DICE_STATE_BEEP_OFF;
+        }
+        break;
+    case DICE_STATE_BEEP_OFF:
+        if ((now - state_timestamp) >= 40) { // O pauză mică de 40ms între note
+            beep_index++;
+            // Verificăm dacă mai avem note în melodia curentă
+            if (beep_index < playlist[dice_value - 1].lungime) {
+                Dice_StartBeep(playlist[dice_value - 1].note[beep_index]);
+                state_timestamp = now;
+                dice_state = DICE_STATE_BEEP_ON;
+            } else {
+                state_timestamp = now;
+                dice_state = DICE_STATE_SHOW_RESULT;
+            }
+        }
+        break;
  case DICE_STATE_SHOW_RESULT:
  // 500 ms afișare rezultat apoi sting LED-uri
 if ((now - state_timestamp) >= 500) {
@@ -118,18 +152,21 @@ static void Dice_Clear(void) {//functie sting toate LED -urile
         GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);//pentru fiecare LED, pune pe LOW
     }
 }
-static void Dice_Display(uint8_t value) {//afisez pe led val.zar 
+static void Dice_Display(uint8_t value) {
     for (uint8_t i = 0; i < 6; i++) {
+        // Această linie resetează pinul să fie ieșire digitală simplă (fără PWM rezidual)
+        GPIO_Init(led_pins[i].port, led_pins[i].pin, GPIO_OUTPUT);
+        
         if (i < value) {
             GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_HIGH);
         } else {
             GPIO_Write(led_pins[i].port, led_pins[i].pin, GPIO_LOW);
-        }//aprind led uri in functie de valoare,restul le las stinse
+        }
     }
 }
 static void Dice_StartBeep(uint16_t frequency) {//funcția care pornește buzzerul
     PWM_Init(D11, frequency);
-    PWM_SetDutyCycle(D11, 128); // 50% duty cycle,practic pornesc semnalul jumatate de timp si jumatate nu ca sa se auda mai clar
+    PWM_SetDutyCycle(D11, 60); 
 }
 static void Dice_StopBeep(void) {
     PWM_SetDutyCycle(D11, 0);
